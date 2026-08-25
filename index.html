@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>የንባብ አስተዳደር — Reading Groups Manager</title>
-<meta name="description" content="የንባብ ቡድኖች አስተዳደር፦ የተማሪዎች ተከታታይ፣ ዕለታዊ መገኘት፣ ውጤቶች እና ለወላጆች ሪፖርት — تطبيق محلي لإدارة قراءات الطلاب">
+<title>የኪታብ መከታተያ — Reading Groups Manager</title>
+<meta name="description" content="የቂራአት ቡድኖች አስተዳደር፦ የተማሪዎች ተከታታይ፣ ዕለታዊ መገኘት፣ ውጤቶች እና ለወላጆች ሪፖርት — تطبيق محلي لإدارة قراءات الطلاب">
 
 <!-- ═══════════ PWA ═══════════ -->
 <meta name="theme-color" content="#0e3b2a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="የንባብ አስተዳደር">
+<meta name="apple-mobile-web-app-title" content="የቂራአት መከታተያ">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230e3b2a'/%3E%3Cpath d='M50 8 L59 41 L92 50 L59 59 L50 92 L41 59 L8 50 L41 41 Z' fill='%23d4af37'/%3E%3C/svg%3E">
 
@@ -65,7 +65,7 @@
     </div>
     <h1 class="app-title" data-i18n="appTitle">የንባብ አስተዳደር</h1>
     <div class="login-ornament" aria-hidden="true"></div>
-    <p class="app-sub" data-i18n="appSubtitle">የተማሪዎች ተከታታይ ሥርዓት</p>
+    <p class="app-sub" data-i18n="appSubtitle">የተማሪዎች መተከታታ ሥርዓት</p>
 
     <form id="loginForm" autocomplete="off">
       <div class="field">
@@ -92,7 +92,7 @@
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark"><svg class="ic"><use href="#icon-book-open"/></svg></span>
-      <span class="brand-text" data-i18n="appTitle">የንባብ አስተዳደር</span>
+      <span class="brand-text" data-i18n="appTitle">የቂራአት አስተዳደር</span>
     </div>
 
     <div class="reading-switch">
@@ -130,7 +130,7 @@
         <h2><span data-i18n="tabStudents">ተማሪዎች</span> <span id="studentsCount" class="count-pill">0</span></h2>
         <div class="view-head-actions">
           <input id="studentSearch" type="search" data-i18n-ph="searchPlaceholder" placeholder="ተማሪ ይፈልጉ…">
-          <button id="btnAddStudent" class="btn btn-gold" data-role="teacher"><svg class="ic"><use href="#icon-plus"/></svg><span data-i18n="addStudent">ተማሪ ያክሉ</span></button>
+          <button id="btnAddStudent" class="btn btn-gold" data-role="teacher"><svg class="ic"><use href="#icon-plus"/></svg><span data-i18n="addStudent">ተማሪ ጨምር</span></button>
         </div>
       </div>
       <p id="studentsEmpty" class="empty hidden" data-i18n="noStudents">እስካሁን ተማሪ አልተመዘገበም።</p>
@@ -170,9 +170,9 @@
           <thead>
             <tr>
               <th data-i18n="colStudent">ተማሪ</th>
-              <th data-i18n="colStatus">መገኘት / ማለመገኘት</th>
-              <th data-i18n="colLate">ዘግይት (ደቂቃ)</th>
-              <th data-i18n="colBook">መጽሐፍ</th>
+              <th data-i18n="colStatus">መገኘት / አለመገኘት</th>
+              <th data-i18n="colLate">ማርፈድ (ደቂቃ)</th>
+              <th data-i18n="colBook">ኪታብ</th>
               <th data-i18n="colNotes" data-role="teacher">ማስታወሻ</th>
             </tr>
           </thead>
@@ -186,7 +186,7 @@
       <div class="view-head">
         <h2 data-i18n="tabGrades">የፈተና ውጤቶች</h2>
         <div class="view-head-actions">
-          <button id="btnAddExam" class="btn btn-gold"><svg class="ic"><use href="#icon-plus"/></svg><span data-i18n="addExam">ፈተና ያክሉ</span></button>
+          <button id="btnAddExam" class="btn btn-gold"><svg class="ic"><use href="#icon-plus"/></svg><span data-i18n="addExam">ፈተና ጨምር</span></button>
         </div>
       </div>
       <div id="examsChips" class="chips"></div>
@@ -198,7 +198,7 @@
           <tfoot id="gradesFoot"></tfoot>
         </table>
       </div>
-      <p class="hint"><svg class="ic"><use href="#icon-chart"/></svg> <span data-i18n="gradesHint">ጠቅላላ እና መቶኛ በራስ-ሰር ይሰላሉ።</span></p>
+      <p class="hint"><svg class="ic"><use href="#icon-chart"/></svg> <span data-i18n="gradesHint">ጠቅላላ እና መቶኛ።</span></p>
     </section>
 
     <!-- ◆ عرض: التقارير الأسبوعية (للأستاذ فقط) ◆ -->
@@ -220,12 +220,12 @@
     <!-- ◆ عرض: إدارة القراءات (للأستاذ فقط) ◆ -->
     <section id="view-readings" class="view" data-role="teacher">
       <div class="view-head">
-        <h2 data-i18n="tabReadings">ንባቦች (ቡድኖች)</h2>
+        <h2 data-i18n="tabReadings">ቂራአቶች (ቡድኖች)</h2>
         <div class="view-head-actions">
           <button id="btnAddReading" class="btn btn-gold btn-lg"><svg class="ic"><use href="#icon-plus"/></svg><span data-i18n="addReading">አዲስ ንባብ ያክሉ</span></button>
         </div>
       </div>
-      <p id="readingsEmpty" class="empty hidden" data-i18n="noReadings">እስካሁን ንባብ አልተፈጠረም። «አዲስ ንባብ ያክሉ» የሚለውን ይንኩ።</p>
+      <p id="readingsEmpty" class="empty hidden" data-i18n="noReadings">እስካሁን ቂራአት አልተፈጠረም። «አዲስ ቂራአት ያክሉ» የሚለውን ይንኩ።</p>
       <div id="readingsGrid" class="readings-grid"></div>
     </section>
 
@@ -264,7 +264,7 @@
   </main>
 
   <footer class="app-footer">
-    <span data-i18n="footerNote">መረጃዎ በዚህ መሣሪያ ላይ ብቻ ይቀመጣሉ።</span>
+    <span data-i18n="footerNote">الا كل شيء ما خلا الله باكل🌟وكل نعيم لا محالة زائل።</span>
   </footer>
 </div>
 
@@ -311,8 +311,8 @@
     <div class="modal-body">
       <input type="hidden" id="readingEditId">
       <div class="field">
-        <label data-i18n="readingName">የንባብ ስም</label>
-        <input id="readingName" type="text" placeholder="ምሳል፦ የምሽት ንባብ">
+        <label data-i18n="readingName">የቂራአት ስም</label>
+        <input id="readingName" type="text" placeholder="ምሳል፦ የምሽት ቂራአት">
       </div>
       <div class="field">
         <label data-i18n="studyDays">የትምህርት ቀናት</label>
@@ -381,7 +381,7 @@
       </div>
       <p class="hint">
         <svg class="ic"><use href="#icon-lock"/></svg>
-        <span data-i18n="assistantNote">ረዳቱ የተማሪዎችን ስም፣ መገኘት፣ የመጽሐፍ ሁኔታ እና የዘግይት ደቂቃዎችን ብቻ ያያል፤ ውጤቶች እና ሪፖርቶች ተደብቀው ይኖራሉ።</span>
+        <span data-i18n="assistantNote">ረዳቱ የተማሪዎችን ስም፣ መገኘት፣ የኪታብ ሁኔታ እና የማርፈድ ደቂቃዎችን ብቻ ያያል፤ ውጤቶች እና ሪፖርቶች ተደብቀው ይኖራሉ።</span>
       </p>
     </div>
     <div class="modal-foot">
