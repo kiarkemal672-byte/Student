@@ -1,9 +1,7 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
-   የንባብ አስተዳደር — Reading Groups Manager
-   js/app.js — المنطق الكامل: مصادقة، قراءات، طلاب، حضور، درجات،
-   تقارير أدبية فصيحة للوالدين، تعدد لغات (أمهرية/إنجليزية/عربية)، PWA
-   ملاحظة: التطبيق محلي 100٪ — البيانات في localStorage فقط.
+   የቂራአት መከታተያ — Qira'at Tracker
+   js/app.js — المنطق الكامل + إصلاحات التثبيت والرسالة الأمهرية
 ═══════════════════════════════════════════════════════════════ */
 
 /* ─────────────── أدوات مساعدة ─────────────── */
@@ -25,13 +23,12 @@ function addDaysISO(iso, n) {
 
 /* ─────────────── 1) الترجمة (i18n) ─────────────── */
 const I18N = {
-  /* ═══ الأمهرية (اللغة الأصلية) ═══ */
   am: {
-    appTitle:'የንባብ አስተዳደር', appSubtitle:'የተማሪዎች ተከታታይ ሥርዓት',
+    appTitle:'የቂራአት መከታተያ', appSubtitle:'የተማሪዎች የቂራአት መከታተያ ሥርዓት',
     username:'የተጠቃሚ ስም', password:'የመግቢያ ቃል', login:'ግባ', logout:'ውጣ',
-    defaultHint:'ነባር መለያ፦ admin / admin123', install:'መተግበሪያ አውርድ',
+    install:'መተግበሪያ አውርድ', installManual:'መተግበሪያውን ለመጫን የአሳሹ ምናሌ (⋮) ይክፈቱና «መተግበሪያ ጫን» የሚለውን ይምረጡ።',
     tabStudents:'ተማሪዎች', tabAttendance:'ዕለታዊ መገኘት', tabGrades:'የፈተና ውጤቶች',
-    tabReports:'ሪፖርቶች', tabReadings:'ንባቦች', tabUsers:'ተጠቃሚዎች',
+    tabReports:'ሪፖርቶች', tabReadings:'ቂራአቶች', tabUsers:'ተጠቃሚዎች',
     addStudent:'ተማሪ ያክሉ', editStudent:'ተማሪ ያስተካክሉ', searchPlaceholder:'ተማሪ ይፈልጉ…',
     noStudents:'እስካሁን ተማሪ አልተመዘገበም።',
     colStudent:'የተማሪ ስም', colFather:'የአባት ስም', colGuardianPhone:'የወላጅ ስልክ', colActions:'ተግባራት',
@@ -45,9 +42,9 @@ const I18N = {
     total:'ጠቅላላ', pct:'መቶኛ', average:'አማካይ',
     from:'ከ', to:'እስከ', generate:'ሪፖርት አዘጋጅ',
     noReports:'ቀናትን ይምረጡና «ሪፖርት አዘጋጅ» የሚለውን ይንኩ።',
-    addReading:'አዲስ ንባብ ያክሉ', editReading:'ንባብ ያስተካክሉ',
-    noReadings:'እስካሁን ንባብ አልተፈጠረም። «አዲስ ንባብ ያክሉ» የሚለውን ይንኩ።',
-    readingName:'የንባብ ስም', studyDays:'የትምህርት ቀናት',
+    addReading:'አዲስ ቂራአት ያክሉ', editReading:'ቂራአት ያስተካክሉ',
+    noReadings:'እስካሁን ቂራአት አልተፈጠረም። «አዲስ ቂራአት ያክሉ» የሚለውን ይንኩ።',
+    readingName:'የቂራአት ስም', studyDays:'የትምህርት ቀናት',
     dayMon:'ሰኞ', dayTue:'ማክሰኞ', dayWed:'ረቡዕ', dayThu:'ሐሙስ', dayFri:'አርብ', daySat:'ቅዳሜ', daySun:'እሁድ',
     addUser:'ረዳት ተጠቃሚ ያክሉ', role:'ሚና', teacher:'መምህር', assistant:'ረዳት',
     changePassword:'የመግቢያ ቃል ይቀይሩ', oldPassword:'የድሮ ቃል', newPassword:'አዲስ ቃል', repeatPassword:'አዲሱን ድገም',
@@ -55,19 +52,19 @@ const I18N = {
     sendMessage:'ለወላጅ መልእክት', share:'አጋራ', copy:'ቅዳ',
     footerNote:'መረጃዎ በዚህ መሣሪያ ላይ ብቻ ይቀመጣሉ።',
     edit:'አርትዕ', delete:'ሰርዝ', select:'ይምረጡ', current:'የተመረጠ', studentsLabel:'ተማሪዎች',
-    noReading:'ንባብ አልተመረጠም።', pickDate:'እባክዎ ቀን ይምረጡ።',
+    noReading:'ቂራአት አልተመረጠም።', pickDate:'እባክዎ ቀን ይምረጡ።',
     savedOk:'በተሳካ ሁኔታ ተቀምጧል።', copied:'ወደ ቅንጥብ ሰሌዳ ተቀድቷል።', copyFail:'መቅዳቱ አልተሳካም።',
     loginFailed:'የተጠቃሚ ስም ወይም የመግቢያ ቃል አልትክክለም።',
     userExists:'ይህ የተጠቃሚ ስም አስቀድሞ አለ።', fieldsMissing:'እባክዎ ሁሉንም መስኮች ይሙሉ።',
     passMismatch:'አዲሶቹ ቃላት አይመሳሰሉም።', passShort:'የመግቢያ ቃሉ ቢያንስ 4 ፊደላት መሆን አለበት።',
     passWrongOld:'የድሮው ቃል አይክክልም።', passChanged:'የመግቢያ ቃል ተቀይሯል።',
     studentSaved:'የተማሪው መረጃ ተቀምጧል።', studentDeleted:'ተማሪው ተሰርዟል።',
-    readingSaved:'ንባቡ ተቀምጧል።', readingDeleted:'ንባቡ እና ሁሉም መረጃው ተሰርዟል።',
+    readingSaved:'ቂራአቱ ተቀምጧል።', readingDeleted:'ቂራአቱ እና ሁሉም መረጃው ተሰርዟል።',
     examSaved:'ፈተናው ተቀምጧል።', examDeleted:'ፈተናው ተሰርዟል።',
     userSaved:'ተጠቃሚው ታክሏል።', userDeleted:'ተጠቃሚው ተሰርዟል።',
     needDays:'ቢያንስ አንድ የትምህርት ቀን ይምረጡ።',
     confirmDelStudent:'ይህን ተማሪ ማጥፋት ይፈልጋሉ? ሁሉም መዝገቡ ይጠፋል።',
-    confirmDelReading:'ይህን ንባብ ማጥፋት ይፈልጋሉ? ተማሪዎቹ፣ መገኘቱ፣ ፈተናዎቹ እና ውጤቶቹ በሙሉ ይጠፋሉ።',
+    confirmDelReading:'ይህን ቂራአት ማጥፋት ይፈልጋሉ? ተማሪዎቹ፣ መገኘቱ፣ ፈተናዎቹ እና ውጤቶቹ በሙሉ ይጠፋሉ።',
     confirmDelExam:'ይህን ፈተና ማጥፋት ይፈልጋሉ?', confirmDelUser:'ይህን ተጠቃሚ ማጥፋት ይፈልጋሉ?',
     studyDay:'የትምህርት ቀን ነው።', notStudyDay:'የትምህርት ቀን አይደለም።',
     noPhone:'ለወላጁ ስልክ ቁጥር አልተመዘገበም።',
@@ -76,12 +73,10 @@ const I18N = {
     rPresent:'ተገኝቷል', rAbsent:'አልተገኘም', rLate:'የዘግይት ደቂቃ', rNoBook:'መጽሐፍ አልመጣም', rExams:'የፈተና ውጤት',
     noEvents:'ምንም ልዩ ክስተት አልተመዘገበም።', moreEvents:'ተጨማሪ', noRecords:'በዚህ ጊዜ ውስጥ መዝገብ አልተገኘም።'
   },
-
-  /* ═══ العربية ═══ */
   ar: {
-    appTitle:'مدير القراءات', appSubtitle:'نظام متابعة الطلاب',
+    appTitle:'متابعة القراءات', appSubtitle:'نظام متابعة طلاب القراءات',
     username:'اسم المستخدم', password:'كلمة المرور', login:'دخول', logout:'خروج',
-    defaultHint:'الحساب الافتراضي: admin / admin123', install:'تثبيت التطبيق',
+    install:'تثبيت التطبيق', installManual:'لتثبيت التطبيق افتح قائمة المتصفح (⋮) واختر «تثبيت التطبيق».',
     tabStudents:'الطلاب', tabAttendance:'الحضور اليومي', tabGrades:'درجات الاختبارات',
     tabReports:'التقارير', tabReadings:'القراءات', tabUsers:'المستخدمون',
     addStudent:'إضافة طالب', editStudent:'تعديل الطالب', searchPlaceholder:'ابحث عن طالب…',
@@ -128,12 +123,10 @@ const I18N = {
     rPresent:'حضور', rAbsent:'غياب', rLate:'دقائق تأخير', rNoBook:'بدون كتاب', rExams:'نتيجة الاختبارات',
     noEvents:'لا أحداث مسجلة.', moreEvents:'أخرى', noRecords:'لا سجلات في هذه الفترة.'
   },
-
-  /* ═══ English ═══ */
   en: {
-    appTitle:'Reading Manager', appSubtitle:'Student Tracking System',
+    appTitle:"Qira'at Tracker", appSubtitle:"Student Qira'at Tracking System",
     username:'Username', password:'Password', login:'Sign in', logout:'Sign out',
-    defaultHint:'Default account: admin / admin123', install:'Install App',
+    install:'Install App', installManual:'To install, open the browser menu (⋮) and choose "Install app".',
     tabStudents:'Students', tabAttendance:'Daily Attendance', tabGrades:'Exam Grades',
     tabReports:'Reports', tabReadings:'Readings', tabUsers:'Users',
     addStudent:'Add Student', editStudent:'Edit Student', searchPlaceholder:'Search student…',
@@ -200,20 +193,19 @@ const DAY_KEYS = ['daySun','dayMon','dayTue','dayWed','dayThu','dayFri','daySat'
 const dayName = d => t(DAY_KEYS[+d]);
 
 /* ─────────────── 2) قاعدة البيانات المحلية ─────────────── */
-const STORE_KEY = 'qiraat_manager_v1';
+const STORE_KEY = 'qiraat_manager_v2';
 
 function seed() {
   return {
     users: [{ username:'admin', password:'admin123', role:'teacher' }],
-    readings: [{ id:'r_' + uid(), name:'የመጀመሪያ ንባብ', days:[1, 3, 5], createdAt: Date.now() }],
+    readings: [{ id:'r_' + uid(), name:'የመጀመሪያ ቂራአት', days:[1, 3, 5], createdAt: Date.now() }],
     students: [],
-    attendance: {},   // { "readingId|YYYY-MM-DD": { studentId: {status, late, book, note} } }
-    exams: [],         // [{id, readingId, name, max, date}]
-    scores: {},        // { "examId|studentId": number }
+    attendance: {},
+    exams: [],
+    scores: {},
     settings: { lang:'am', currentReading: null }
   };
 }
-
 function loadDB() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
@@ -248,7 +240,6 @@ function toast(msg) {
 }
 function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
 let confirmCb = null;
 function confirmAction(msg, cb) {
   $('#confirmText').textContent = msg;
@@ -279,7 +270,7 @@ function applyLang(l) {
   if (session) renderAll();
 }
 
-/* ─────────────── 7) الدخول والخروج والأدوار ─────────────── */
+/* ─────────────── 7) الدخول والخروج ─────────────── */
 function showLogin() {
   $('#loginScreen').classList.remove('hidden');
   $('#app').classList.add('hidden');
@@ -304,7 +295,7 @@ function logout() {
   showLogin();
 }
 
-/* ─────────────── 8) عرض القراءة الحالية (المبدّل) ─────────────── */
+/* ─────────────── 8) مبدّل القراءة ─────────────── */
 function renderReadingSelect() {
   const sel = $('#readingSelect');
   sel.innerHTML = '';
@@ -351,7 +342,6 @@ function renderStudents() {
     tb.appendChild(tr);
   });
 }
-
 function openStudentModal(student) {
   $('#modalStudentTitle').textContent = student ? t('editStudent') : t('addStudent');
   $('#studentEditId').value = student ? student.id : '';
@@ -361,7 +351,6 @@ function openStudentModal(student) {
   openModal('modalStudent');
   setTimeout(() => $('#studentName').focus(), 80);
 }
-
 function saveStudent() {
   const name = $('#studentName').value.trim();
   const father = $('#studentFather').value.trim();
@@ -379,7 +368,6 @@ function saveStudent() {
   save(); closeModal('modalStudent'); renderStudents(); renderAttendance(); renderGrades();
   toast(t('studentSaved'));
 }
-
 function deleteStudent(id) {
   confirmAction(t('confirmDelStudent'), () => {
     DB.students = DB.students.filter(s => s.id !== id);
@@ -402,7 +390,6 @@ function renderAttendance() {
   const rec = (reading && date && DB.attendance[`${reading.id}|${date}`]) || {};
   const tb = $('#attendanceBody');
   tb.innerHTML = '';
-
   list.forEach(s => {
     const r = rec[s.id] || { status:'present', late:0, book:'yes', note:'' };
     const tr = document.createElement('tr');
@@ -411,10 +398,10 @@ function renderAttendance() {
       <td>
         <div class="status-toggle" data-student="${s.id}">
           <button type="button" class="st-present ${r.status === 'present' ? 'on' : ''}" data-val="present">
-            <svg class="ic"><use href="#icon-check"/></svg><span data-i18n="present">${t('present')}</span>
+            <svg class="ic"><use href="#icon-check"/></svg><span>${t('present')}</span>
           </button>
           <button type="button" class="st-absent ${r.status === 'absent' ? 'on' : ''}" data-val="absent">
-            <svg class="ic"><use href="#icon-x"/></svg><span data-i18n="absent">${t('absent')}</span>
+            <svg class="ic"><use href="#icon-x"/></svg><span>${t('absent')}</span>
           </button>
         </div>
       </td>
@@ -434,7 +421,6 @@ function renderAttendance() {
   updateAttSums();
   updateDayInfo();
 }
-
 function updateAttSums() {
   let p = 0, a = 0;
   $$('#attendanceBody .status-toggle').forEach(tg => {
@@ -444,7 +430,6 @@ function updateAttSums() {
   $('#sumPresent').textContent = p;
   $('#sumAbsent').textContent = a;
 }
-
 function updateDayInfo() {
   const el = $('#attDayInfo');
   const reading = currentReading();
@@ -454,7 +439,6 @@ function updateDayInfo() {
   const isStudy = reading.days.includes(wd);
   el.textContent = `◈ ${reading.name} — ${fmtDateLong(date)} — ${isStudy ? t('studyDay') : t('notStudyDay')}`;
 }
-
 function saveAttendance() {
   const reading = currentReading();
   if (!reading) { toast(t('noReading')); return; }
@@ -484,7 +468,6 @@ function renderGrades() {
   const students = studentsOf(reading && reading.id);
   const exams = examsOf(reading && reading.id);
 
-  /* شرائح الاختبارات */
   const chips = $('#examsChips');
   chips.innerHTML = '';
   exams.forEach(ex => {
@@ -496,7 +479,6 @@ function renderGrades() {
   });
   $('#gradesEmpty').classList.toggle('hidden', exams.length > 0);
 
-  /* رأس الجدول */
   let h = `<tr><th class="col-num">#</th><th>${t('colStudent')}</th>`;
   exams.forEach(ex => {
     h += `<th>${esc(ex.name)}<div class="student-sub">${ex.max} ${t('points')} · ${fmtDateShort(ex.date)}</div></th>`;
@@ -504,7 +486,6 @@ function renderGrades() {
   h += `<th>${t('total')}</th><th>${t('pct')}</th></tr>`;
   $('#gradesHead').innerHTML = h;
 
-  /* صفوف الطلاب */
   const tb = $('#gradesBody');
   tb.innerHTML = '';
   students.forEach((s, i) => {
@@ -521,7 +502,6 @@ function renderGrades() {
   });
   recomputeGrades();
 }
-
 function recomputeGrades() {
   const exams = examsOf(currentReading() && currentReading().id);
   const maxSum = exams.reduce((s, e) => s + (+e.max || 0), 0);
@@ -537,11 +517,9 @@ function recomputeGrades() {
     pe.textContent = pct + '%';
     pe.className = 'pct-cell td-pct ' + (pct >= 80 ? 'pct-high' : pct >= 50 ? 'pct-mid' : 'pct-low');
   });
-  /* المتوسطات في التذييل */
   let f = `<tr><td colspan="2">${t('average')}</td>`;
   exams.forEach(ex => {
     const vals = [];
-    $$('#gradesBody').forEach(() => {});
     $$('#gradesBody tr').forEach(tr => {
       const inp = tr.querySelector(`[data-exam="${ex.id}"]`);
       if (inp && inp.value !== '') vals.push(parseFloat(inp.value) || 0);
@@ -556,7 +534,6 @@ function recomputeGrades() {
   f += `<td class="total-cell">—</td><td class="pct-cell">${n ? Math.round(sumPct / n) + '%' : '—'}</td></tr>`;
   $('#gradesFoot').innerHTML = f;
 }
-
 function openExamModal() {
   $('#examEditId').value = '';
   $('#examName').value = '';
@@ -565,7 +542,6 @@ function openExamModal() {
   openModal('modalExam');
   setTimeout(() => $('#examName').focus(), 80);
 }
-
 function saveExam() {
   const reading = currentReading();
   if (!reading) { toast(t('noReading')); return; }
@@ -577,7 +553,6 @@ function saveExam() {
   save(); closeModal('modalExam'); renderGrades();
   toast(t('examSaved'));
 }
-
 function deleteExam(id) {
   confirmAction(t('confirmDelExam'), () => {
     DB.exams = DB.exams.filter(e => e.id !== id);
@@ -587,7 +562,7 @@ function deleteExam(id) {
   });
 }
 
-/* ─────────────── 12) جمع سجل الطالب (للتقارير والرسائل) ─────────────── */
+/* ─────────────── 12) جمع سجل الطالب ─────────────── */
 function collectStudentRecord(sid, from, to) {
   const reading = currentReading();
   const days = [];
@@ -621,7 +596,6 @@ function generateReports() {
   $('#reportsEmpty').classList.toggle('hidden', students.length > 0);
   students.forEach(s => grid.appendChild(buildReportCard(s, from, to)));
 }
-
 function buildReportCard(s, from, to) {
   const rec = collectStudentRecord(s.id, from, to);
   const days = rec.days;
@@ -635,7 +609,6 @@ function buildReportCard(s, from, to) {
   const scoreSum = rec.exams.reduce((a, e) => a + (e.score != null ? e.score : 0), 0);
   const pct = maxSum ? Math.round((scoreSum / maxSum) * 100) : null;
 
-  /* الأحداث */
   const evs = [];
   days.forEach(d => {
     if (d.status === 'absent') {
@@ -678,14 +651,14 @@ function buildReportCard(s, from, to) {
   return card;
 }
 
-/* ─────────────── 14) الرسالة الأدبية الفصيحة لولي الأمر ─────────────── */
+/* ─────────────── 14) الرسالة الأمهرية الفصيحة لولي الأمر ─────────────── */
 let msgStudent = null;
 
-function arNum(n) { try { return Number(n).toLocaleString('ar-EG'); } catch (e) { return String(n); } }
-function arDate(iso) {
-  try { return new Date(iso + 'T00:00:00').toLocaleDateString('ar', { weekday:'long', day:'numeric', month:'long' }); }
+function amDate(iso) {
+  try { return new Date(iso + 'T00:00:00').toLocaleDateString('am-ET', { weekday:'long', day:'numeric', month:'long' }); }
   catch (e) { return iso; }
 }
+function amNum(n) { try { return Number(n).toLocaleString('am-ET'); } catch (e) { return String(n); } }
 
 function buildParentMessage(st, fromISO, toISO, readingName) {
   const rec = collectStudentRecord(st.id, fromISO, toISO);
@@ -695,48 +668,34 @@ function buildParentMessage(st, fromISO, toISO, readingName) {
   const lates = days.filter(d => d.status === 'present' && d.late > 0);
   const lateTotal = lates.reduce((a, d) => a + d.late, 0);
   const noBooks = days.filter(d => d.book === 'no');
-  const L = [];
+  const present = total - absents.length;
 
-  L.push('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ');
+  const L = [];
+  L.push('ሰላም ይገባዎ፤');
   L.push('');
-  L.push('السلامُ عليكم ورحمةُ اللهِ وبركاتُه، وبعدُ:');
+  L.push('የልጅዎን የሳምንት የቂራአት መከታተያ ሪፖርት ለማሳየት ተወስነናል።');
+  L.push('');
+  L.push(`የሳምንቱ ጊዜ፡ ${amDate(fromISO)} እስከ ${amDate(toISO)}`);
+  L.push(`ተማሪ፡ ${st.name} ${st.father}`);
+  L.push(`ቂራአት፡ ${readingName}`);
   L.push('');
 
   if (total === 0) {
-    L.push(`نعلمُكم بأن سجلَّ «${st.name} ${st.father}» في «${readingName}» لا يشتملُ على أيامِ حضورٍ مُسجَّلةٍ خلال الفترةِ من ${arDate(fromISO)} إلى ${arDate(toISO)}، فحبَّذا لو تكرَّمتُم بالاستفسار.`);
+    L.push('በዚህ ጊዜ የተመዘገበ የትምህርት ቀን የለም።');
   } else {
-    const present = total - absents.length;
-    L.push(`يسرُّنا أن نرفعَ إلى كريمِ عنايتِكم موجزَ سجلِّ «${st.name} ${st.father}» في «${readingName}»، خلالَ الفترةِ من ${arDate(fromISO)} إلى ${arDate(toISO)}، وهذا بيانُه:`);
-    L.push('');
-    L.push(`◈ الحضورُ: حضر ${arNum(present)} من أصل ${arNum(total)} يومًا من أيامِ الدرس.`);
-    L.push(`◈ الغيابُ: ${absents.length
-      ? `غاب ${arNum(absents.length)} ${absents.length === 1 ? 'يومًا واحدًا' : 'أيام'} (${absents.map(d => arDate(d.date)).join('، ')})`
-      : 'لم يتغيَّبْ يومًا واحدًا، فله الشكرُ والثناء'}.`);
-    L.push(`◈ التأخيرُ: ${lates.length
-      ? `تأخَّر بمجموعِ ${arNum(lateTotal)} دقيقةً عبرَ ${arNum(lates.length)} من الأيام (${lates.map(d => arDate(d.date)).join('، ')})`
-      : 'لم يتأخَّرْ لحظةً واحدة'}.`);
-    L.push(`◈ الكتابُ: ${noBooks.length
-      ? `جاء خاليَ اليدين في ${arNum(noBooks.length)} من الأيام (${noBooks.map(d => arDate(d.date)).join('، ')})`
-      : 'أحضرَ كتابَه في جميعِ الأيام'}.`);
+    L.push(`• መገኘት፡ ከ${amNum(total)} ቀናት ${amNum(present)} ቀን ተገኝቷል${absents.length ? `፤ የጠፉት ቀናት፡ ${absents.map(d => amDate(d.date)).join('፣ ')}` : ''}።`);
+    L.push(`• ዘግይቶ መምጣት፡ ${lates.length ? `${amNum(lateTotal)} ደቂቃ ዘግይቷል${lates.length ? `፤ የዘግየት ቀናት፡ ${lates.map(d => amDate(d.date)).join('፣ ')}` : ''}።` : 'አልዘገየም።'}`);
+    L.push(`• መጽሐፍ፡ ${noBooks.length ? `በነዚህ ቀናት አልመጣም፡ ${noBooks.map(d => amDate(d.date)).join('፣ ')}።` : 'መጽሐፉን በየቀኑ አምጥቷል።'}`);
     if (rec.exams.length) {
-      const ex = rec.exams.map(x =>
-        `«${x.name}»: ${arNum(x.score != null ? x.score : 0)} من ${arNum(x.max)}${x.pct != null ? ` (${arNum(Math.round(x.pct))}٪)` : ''}`
-      ).join('، ');
-      L.push(`◈ الاختباراتُ: ${ex}.`);
+      const ex = rec.exams.map(x => `${x.name}፡ ${amNum(x.score != null ? x.score : 0)} ከ${amNum(x.max)}`).join('፣ ');
+      L.push(`• የፈተና ውጤት፡ ${ex}።`);
     }
   }
 
   L.push('');
-  if (total > 0 && absents.length === 0 && lates.length === 0 && noBooks.length === 0) {
-    L.push('وقد كان سجلُّه مشرِّفًا نضرًا؛ فلمثلِ هذا تُرفعُ القُبَّعاتُ، وتُنسَجُ حولَه الثناءات، ولِحسنِ التربيةِ أهلُها.')
-  } else {
-    L.push('ونرجو من كريمِ عنايتِكم مواصلةَ المتابعةِ وحُسنَ المساءلة؛ فالغصنُ لا يعتدلُ إلا بالرِّيِّ، ولا يُنضَجُ الدَّرُّ إلا بالصبر.');
-  }
+  L.push('ለልጅዎ የትምህርት ስኬት እንመኛለን፤ ለትኩረታችሁና ለትብትናችሁም እናመሰግናለን።');
   L.push('');
-  L.push('نسألُ اللهَ أن يجعلَ ثمرةَ عنايتِكم سدادًا ونجاحًا، وأن يباركَ في جهودِكم ويجزيكم خيرَ الجزاء.');
-  L.push('');
-  L.push('وتفضَّلوا بقبولِ فائقِ الاحترامِ والتقدير،');
-  L.push('— أستاذ القراءة');
+  L.push('የቂራአት መምህር');
   return L.join('\n');
 }
 
@@ -760,7 +719,6 @@ function normalizePhone(p) {
   if (d.startsWith('0')) return '+251' + d.slice(1);
   return d ? '+' + d : '';
 }
-
 function copyText(text) {
   return new Promise(res => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -804,7 +762,6 @@ function renderReadingsGrid() {
     grid.appendChild(card);
   });
 }
-
 function openReadingModal(reading) {
   $('#modalReadingTitle').textContent = reading ? t('editReading') : t('addReading');
   $('#readingEditId').value = reading ? reading.id : '';
@@ -815,7 +772,6 @@ function openReadingModal(reading) {
   openModal('modalReading');
   setTimeout(() => $('#readingName').focus(), 80);
 }
-
 function saveReading() {
   const name = $('#readingName').value.trim();
   const days = [...$$('#daysGrid input[type="checkbox"]:checked')].map(c => +c.value);
@@ -833,7 +789,6 @@ function saveReading() {
   save(); closeModal('modalReading'); renderAll();
   toast(t('readingSaved'));
 }
-
 function deleteReading(id) {
   confirmAction(t('confirmDelReading'), () => {
     const exIds = DB.exams.filter(e => e.readingId === id).map(e => e.id);
@@ -867,7 +822,6 @@ function renderUsers() {
     tb.appendChild(tr);
   });
 }
-
 function saveNewUser() {
   const name = $('#newUserName').value.trim();
   const pass = $('#newUserPass').value;
@@ -880,7 +834,6 @@ function saveNewUser() {
   renderUsers();
   toast(t('userSaved'));
 }
-
 function changePassword() {
   const oldP = $('#oldPass').value;
   const newP = $('#newPass').value;
@@ -898,7 +851,7 @@ function changePassword() {
 
 /* ─────────────── 17) العرض الشامل ─────────────── */
 function renderAll() {
-  currentReading();          /* يضبط صحة الاختيار */
+  currentReading();
   renderReadingSelect();
   renderStudents();
   renderAttendance();
@@ -909,8 +862,6 @@ function renderAll() {
 
 /* ─────────────── 18) ربط الأحداث ─────────────── */
 function bindEvents() {
-
-  /* الدخول */
   $('#loginForm').addEventListener('submit', e => {
     e.preventDefault();
     const u = $('#loginUser').value.trim();
@@ -921,19 +872,12 @@ function bindEvents() {
     setSession(found);
     showApp();
   });
-
   $('#btnLogout').addEventListener('click', logout);
-
-  /* اللغة */
   $('#langSelect').addEventListener('change', e => applyLang(e.target.value));
-
-  /* مبدّل القراءات */
   $('#readingSelect').addEventListener('change', e => {
     DB.settings.currentReading = e.target.value || null;
     save(); renderAll();
   });
-
-  /* التبويبات */
   $('#mainTabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab');
     if (!btn) return;
@@ -943,7 +887,6 @@ function bindEvents() {
     if (v === 'reports') generateReports();
   });
 
-  /* الطلاب */
   $('#btnAddStudent').addEventListener('click', () => openStudentModal(null));
   $('#btnSaveStudent').addEventListener('click', saveStudent);
   $('#studentSearch').addEventListener('input', renderStudents);
@@ -954,7 +897,6 @@ function bindEvents() {
     if (dl) deleteStudent(dl.dataset.del);
   });
 
-  /* الحضور */
   $('#attDate').addEventListener('change', renderAttendance);
   $('#btnSaveAttendance').addEventListener('click', saveAttendance);
   $('#attendanceBody').addEventListener('click', e => {
@@ -971,7 +913,6 @@ function bindEvents() {
     updateAttSums();
   });
 
-  /* الاختبارات والدرجات */
   $('#btnAddExam').addEventListener('click', openExamModal);
   $('#btnSaveExam').addEventListener('click', saveExam);
   $('#examsChips').addEventListener('click', e => {
@@ -995,7 +936,6 @@ function bindEvents() {
     recomputeGrades();
   });
 
-  /* التقارير */
   $('#btnGenReport').addEventListener('click', generateReports);
   $('#reportsList').addEventListener('click', e => {
     const btn = e.target.closest('[data-act="msg"]');
@@ -1005,7 +945,6 @@ function bindEvents() {
     openMessageModal(st, btn.dataset.idx);
   });
 
-  /* رسالة ولي الأمر: تليجرام / SMS / مشاركة / نسخ */
   $('#btnSendTelegram').addEventListener('click', () => {
     if (!msgStudent) return;
     const phone = normalizePhone(msgStudent.phone);
@@ -1024,7 +963,7 @@ function bindEvents() {
   $('#btnShareMsg').addEventListener('click', async () => {
     const text = $('#messageText').value;
     if (navigator.share) {
-      try { await navigator.share({ title: t('appTitle'), text }); } catch (e) { /* أُلغيت المشاركة */ }
+      try { await navigator.share({ title: t('appTitle'), text }); } catch (e) {}
     } else {
       copyText(text).then(() => toast(t('shareFallback')));
     }
@@ -1033,7 +972,6 @@ function bindEvents() {
     copyText($('#messageText').value).then(ok => toast(ok ? t('copied') : t('copyFail')));
   });
 
-  /* القراءات */
   $('#btnAddReading').addEventListener('click', () => openReadingModal(null));
   $('#btnSaveReading').addEventListener('click', saveReading);
   $('#readingsGrid').addEventListener('click', e => {
@@ -1045,7 +983,6 @@ function bindEvents() {
     if (dl) deleteReading(dl.dataset.delread);
   });
 
-  /* المستخدمون */
   $('#btnAddUser').addEventListener('click', () => {
     $('#newUserName').value = ''; $('#newUserPass').value = '';
     openModal('modalUser');
@@ -1063,7 +1000,6 @@ function bindEvents() {
   });
   $('#btnChangePass').addEventListener('click', changePassword);
 
-  /* النوافذ العامة */
   $$('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
   $$('.modal-overlay').forEach(ov =>
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); }));
@@ -1076,21 +1012,163 @@ function bindEvents() {
   });
 }
 
-/* ─────────────── 19) PWA ─────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   19) PWA — توليد أيقونات PNG حقيقية وحقن manifest ديناميكي
+       (السبب: Chrome لا يقبل أيقونات SVG داخل manifest للتثبيت،
+        لذا نولّد PNG برمجياً عبر Canvas ليعمل زر التثبيت فعلياً)
+═══════════════════════════════════════════════════════════════ */
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function drawStar4(ctx, cx, cy, r) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r);
+  ctx.lineTo(cx + r * 0.28, cy - r * 0.28);
+  ctx.lineTo(cx + r, cy);
+  ctx.lineTo(cx + r * 0.28, cy + r * 0.28);
+  ctx.lineTo(cx, cy + r);
+  ctx.lineTo(cx - r * 0.28, cy + r * 0.28);
+  ctx.lineTo(cx - r, cy);
+  ctx.lineTo(cx - r * 0.28, cy - r * 0.28);
+  ctx.closePath();
+  ctx.fill();
+}
+function drawBook(ctx, s, o) {
+  o = o || {};
+  const u = s / 512;
+  const cx = 256 * u;
+  const w = (o.w || 300) * u;
+  const h = (o.h || 280) * u;
+  const topY = (o.top != null ? o.top : 180) * u;
+
+  ctx.strokeStyle = '#f0d98c';
+  ctx.lineWidth = 18 * u;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(cx - w/2, topY);
+  ctx.lineTo(cx, topY + 20*u);
+  ctx.lineTo(cx, topY + h);
+  ctx.lineTo(cx - w/2, topY + h - 20*u);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(cx + w/2, topY);
+  ctx.lineTo(cx, topY + 20*u);
+  ctx.lineTo(cx, topY + h);
+  ctx.lineTo(cx + w/2, topY + h - 20*u);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.lineWidth = 6 * u;
+  ctx.beginPath();
+  ctx.moveTo(cx - w/2 + 40*u, topY + 70*u);  ctx.lineTo(cx - 30*u, topY + 90*u);
+  ctx.moveTo(cx - w/2 + 40*u, topY + 110*u); ctx.lineTo(cx - 30*u, topY + 130*u);
+  ctx.moveTo(cx - w/2 + 40*u, topY + 150*u); ctx.lineTo(cx - 30*u, topY + 170*u);
+  ctx.moveTo(cx + 30*u, topY + 90*u);  ctx.lineTo(cx + w/2 - 40*u, topY + 70*u);
+  ctx.moveTo(cx + 30*u, topY + 130*u); ctx.lineTo(cx + w/2 - 40*u, topY + 110*u);
+  ctx.moveTo(cx + 30*u, topY + 170*u); ctx.lineTo(cx + w/2 - 40*u, topY + 150*u);
+  ctx.stroke();
+}
+function drawAppIcon(ctx, s, maskable) {
+  const u = s / 512;
+  ctx.clearRect(0, 0, s, s);
+
+  const g = ctx.createLinearGradient(0, 0, s, s);
+  g.addColorStop(0, '#175641');
+  g.addColorStop(0.55, '#0e3b2a');
+  g.addColorStop(1, '#07271b');
+
+  if (maskable) {
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, s, s);
+    drawBook(ctx, s, { top: 136, w: 240, h: 240 });
+  } else {
+    roundRectPath(ctx, 0, 0, s, s, 110 * u);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(212,175,55,.55)';
+    ctx.lineWidth = 4 * u;
+    roundRectPath(ctx, 22*u, 22*u, 468*u, 468*u, 92*u);
+    ctx.stroke();
+    ctx.fillStyle = '#d4af37';
+    drawStar4(ctx, 256*u, 116*u, 34*u);
+    drawBook(ctx, s, { top: 180, w: 300, h: 280 });
+  }
+}
+
+function setupDynamicManifest() {
+  try {
+    const icons = [];
+    [192, 512].forEach(s => {
+      const c = document.createElement('canvas');
+      c.width = s; c.height = s;
+      drawAppIcon(c.getContext('2d'), s, false);
+      icons.push({ src: c.toDataURL('image/png'), sizes: s + 'x' + s, type: 'image/png', purpose: 'any' });
+    });
+    const cm = document.createElement('canvas');
+    cm.width = 512; cm.height = 512;
+    drawAppIcon(cm.getContext('2d'), 512, true);
+    icons.push({ src: cm.toDataURL('image/png'), sizes: '512x512', type: 'image/png', purpose: 'maskable' });
+
+    const manifest = {
+      id: 'qiraat-tracker',
+      name: 'የቂራአት መከታተያ',
+      short_name: 'ቂራአት መከታተያ',
+      description: 'የተማሪዎች የቂራአት መከታተያ ሥርዓት',
+      start_url: './index.html',
+      scope: './',
+      display: 'standalone',
+      orientation: 'any',
+      dir: 'auto',
+      lang: 'am',
+      theme_color: '#0e3b2a',
+      background_color: '#fbf8ef',
+      categories: ['education', 'productivity'],
+      icons: icons
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    const url = URL.createObjectURL(blob);
+    let link = document.querySelector('link[rel="manifest"]');
+    if (!link) { link = document.createElement('link'); link.rel = 'manifest'; document.head.appendChild(link); }
+    link.href = url;
+  } catch (e) { /* fallback إلى manifest.json الثابت */ }
+}
+
+/* التقاط حدث التثبيت مبكراً (قبل DOMContentLoaded إن أمكن) */
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  $('#btnInstall').classList.remove('hidden');
+  const btn = document.getElementById('btnInstall');
+  if (btn) btn.classList.remove('hidden');
 });
-window.addEventListener('appinstalled', () => $('#btnInstall').classList.add('hidden'));
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  const btn = document.getElementById('btnInstall');
+  if (btn) btn.classList.add('hidden');
+});
+
 function setupInstallButton() {
   $('#btnInstall').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch (e) {}
-    deferredPrompt = null;
-    $('#btnInstall').classList.add('hidden');
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch (e) {}
+      deferredPrompt = null;
+      $('#btnInstall').classList.add('hidden');
+    } else {
+      /* لا يوجد موجه متاح — وجّه المستخدم لقائمة المتصفح */
+      toast(t('installManual'));
+    }
   });
 }
 function registerSW() {
@@ -1100,8 +1178,10 @@ function registerSW() {
 }
 
 /* ─────────────── 20) الإقلاع ─────────────── */
+/* حقن manifest ديناميكي بأيقونات PNG في أقرب وقت */
+setupDynamicManifest();
+
 document.addEventListener('DOMContentLoaded', () => {
-  /* إخفاء عمود الإجراءات عن المساعد (يتكامل مع قاعدة CSS) */
   const actTh = document.querySelector('#studentsTable thead th:last-child');
   if (actTh) actTh.setAttribute('data-role', 'teacher');
 
